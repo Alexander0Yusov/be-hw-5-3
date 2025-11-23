@@ -23,12 +23,10 @@ export class UpdateCommentUseCase
     commentId,
     userId,
   }: UpdateCommentCommand): Promise<void> {
-    const comment =
-      await this.commentsRepository.findByIdOrNotFoundFail(commentId);
+    const comment = await this.commentsRepository.findById(commentId);
 
-    if (comment.commentatorInfo.userId?.toString() === userId) {
-      comment.updateContent(dto.content);
-      this.commentsRepository.save(comment);
+    if (comment.user_id === Number(userId)) {
+      await this.commentsRepository.update(dto, commentId);
     } else {
       throw new DomainException({
         code: DomainExceptionCode.Forbidden,

@@ -1,13 +1,14 @@
 import { Like } from '../../domain/like/like.entity';
+import { LikeDbDto } from '../../dto/like/like-db.dto';
 import { PostViewDto } from '../../dto/post/post-view.dto';
 
 export const postItemsGetsMyStatus = (
   posts: PostViewDto[],
-  likes: Like[],
+  likes: LikeDbDto[],
 ): PostViewDto[] => {
   const updatedPosts = posts.map((post) => {
     const currentLike = likes.find(
-      (like) => like.parentId.toString() === post.id,
+      (like) => like.parent_id.toString() === post.id,
     );
 
     if (currentLike) {

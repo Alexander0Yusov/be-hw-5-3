@@ -36,12 +36,13 @@ import { GetPostsByBlogIdHandler } from './application/usecases/posts/get-posts-
 import { GetPostHandler } from './application/usecases/posts/get-post.query-handler';
 
 export const CommandHandlers = [
-  // CreateCommentUseCase,
-  // UpdateCommentUseCase,
-  // UpdateCommentLikeStatusUseCase,
-  // GetCommentUseCase,
-  // DeleteCommentUseCase,
-  // UpdatepostLikeStatusUseCase,
+  CreateCommentUseCase,
+  UpdateCommentUseCase,
+  UpdateCommentLikeStatusUseCase,
+  GetCommentUseCase,
+  DeleteCommentUseCase,
+  //
+  UpdatepostLikeStatusUseCase,
   GetPostsByBlogIdHandler,
   GetPostHandler,
   CreatePostUseCase,
@@ -54,19 +55,11 @@ export const CommandHandlers = [
 ];
 
 @Module({
-  imports: [
-    // MongooseModule.forFeature([
-    //   { name: Blog.name, schema: BlogSchema },
-    //   { name: Like.name, schema: LikeSchema },
-    //   { name: Post.name, schema: PostSchema },
-    //   { name: Comment.name, schema: CommentSchema },
-    // ]),
-    UserAccountsModule,
-  ],
+  imports: [UserAccountsModule],
   controllers: [
     BlogsController,
     PostsController,
-    // CommentsController,
+    CommentsController,
     SaBlogsController,
   ],
   providers: [
@@ -78,12 +71,12 @@ export const CommandHandlers = [
     PostsQueryRepository,
     // PostsService,
     //
-    // CommentsQueryRepository,
-    // CommentsRepository,
+    CommentsQueryRepository,
+    CommentsRepository,
     // CommentsService,
     //
-    // LikesRepository,
-    // LikesQueryRepository,
+    LikesRepository,
+    LikesQueryRepository,
 
     ...CommandHandlers,
   ],

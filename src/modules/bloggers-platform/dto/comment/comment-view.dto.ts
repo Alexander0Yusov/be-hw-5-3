@@ -1,5 +1,6 @@
 import { Comment } from '../../domain/comment/comment.entity';
 import { LikeStatus } from '../../domain/like/like.entity';
+import { CommentDbDto } from './comment-db.dto';
 
 export class CommentatorInfo {
   userId: string;
@@ -18,17 +19,21 @@ export class CommentViewDto {
   };
 
   static mapToView(
-    comment: any, // CommentDocument,
+    comment: CommentDbDto & {
+      login: string;
+      likeCount: number;
+      dislikeCount: number;
+    },
     myStatus: LikeStatus = LikeStatus.None,
   ): CommentViewDto {
     return {
-      id: comment._id.toString(),
+      id: comment.id.toString(),
       content: comment.content,
       commentatorInfo: {
-        userId: comment.commentatorInfo.userId!.toString(),
-        userLogin: comment.commentatorInfo.userLogin!.toString(),
+        userId: comment.user_id.toString(),
+        userLogin: comment.login.toString(),
       },
-      createdAt: comment.createdAt.toISOString(),
+      createdAt: comment.created_at.toISOString(),
       likesInfo: {
         likesCount: comment.likeCount,
         dislikesCount: comment.dislikeCount,

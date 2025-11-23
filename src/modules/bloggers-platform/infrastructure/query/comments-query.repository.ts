@@ -8,67 +8,113 @@ import { Blog } from '../../domain/blog/blog.entity';
 import { Comment } from '../../domain/comment/comment.entity';
 import { CommentViewDto } from '../../dto/comment/comment-view.dto';
 import { GetCommentsQueryParams } from '../../dto/comment/get-comments-query-params.input-dto';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { CommentDbDto } from '../../dto/comment/comment-db.dto';
 
 @Injectable()
 export class CommentsQueryRepository {
-  constructor() // @InjectModel(Comment.name)
-  // private CommentModel: any,
-  // CommentModelType,
-  //@InjectModel(Like.name)
-  // private LikeModel: any,
-  // LikeModelType,
-  //  @InjectModel(Blog.name) private BlogModel: BlogModelType,
-  {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
-  // async findByIdOrNotFoundFail(
-  //   parentId: string,
-  //   authorId?: string,
-  // ): Promise<CommentViewDto> {
-  //   const comment = await this.CommentModel.findById(parentId);
+  async findByIdOrNotFoundFail(
+    commentId: string,
+    authorId?: string,
+  ): Promise<CommentViewDto> {
+    const params: any[] = [Number(commentId)];
 
-  //   if (!comment) {
-  //     throw new NotFoundException('post not found');
-  //   }
+    let sql = `
+  SELECT c.id, c.content, c.user_id, c.created_at, u.login, l.status
+  FROM comments c
+  JOIN users u ON c.user_id = u.id
+  LEFT JOIN likes l ON l.parent_id = c.id AND l.parent_type = 'comment'
+`;
 
-  //   const filter: Record<string, any> = {
-  //     parentId: '', // new Types.ObjectId(parentId),
-  //     // parentModel: 'Comment',
-  //   };
+    if (authorId) {
+      sql += ` AND l.user_id = $2`;
+      params.push(Number(authorId));
+    }
 
-  //   let myLike;
+    sql += ` WHERE c.id = $1`;
 
-  //   if (authorId) {
-  //     filter.authorId = ''; //new Types.ObjectId(authorId);
-  //     myLike = await this.LikeModel.findOne(filter).lean();
-  //   }
+    const [comment] = await this.dataSource.query(sql, params);
 
-  //   return CommentViewDto.mapToView(comment, myLike?.status);
-  // }
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
 
-  // async findManyByPostId(
-  //   id: string,
-  //   queryDto: GetCommentsQueryParams,
-  // ): Promise<PaginatedViewDto<CommentViewDto[]>> {
-  //   const { pageNumber, pageSize, sortBy, sortDirection } = queryDto;
-  //   const skip = (pageNumber - 1) * pageSize;
-  //   const filter = {
-  //     postId: '', // new Types.ObjectId(id)
-  //   };
+    const { id, content, user_id, login, status, created_at } = comment;
 
-  //   const totalCount = await this.CommentModel.countDocuments(filter);
+    const [counts] = await this.dataSource.query(
+      `
+      SELECT
+      COUNT(*) FILTER (WHERE status = 'Like')::int  AS likes_count,
+      COUNT(*) FILTER (WHERE status = 'Dislike')::int AS dislikes_count
+      FROM likes
+      WHERE parent_id = $1 AND parent_type = $2 AND status != 'None';
+      `,
+      [Number(commentId), 'comment'],
+    );
 
-  //   const comments = await this.CommentModel.find(filter)
-  //     .sort({ [sortBy]: sortDirection })
-  //     .skip(skip)
-  //     .limit(pageSize);
+    console.log(44444, comment, '==', counts);
 
-  //   const items = comments.map((comment) => CommentViewDto.mapToView(comment));
+    return {
+      id: String(id),
+      content: content,
+      commentatorInfo: { userId: String(user_id), userLogin: login },
+      createdAt: created_at,
+      likesInfo: {
+        likesCount: counts.likes_count,
+        dislikesCount: counts.dislikes_count,
+        myStatus: status ?? 'None',
+      },
+    };
+  }
 
-  //   return PaginatedViewDto.mapToView({
-  //     items,
-  //     totalCount,
-  //     page: queryDto.pageNumber,
-  //     size: queryDto.pageSize,
-  //   });
-  // }
+  async findManyByPostId(
+    id: string,
+    queryDto: GetCommentsQueryParams,
+  ): Promise<PaginatedViewDto<CommentViewDto[]>> {
+    const { pageNumber, pageSize, sortBy, sortDirection } = queryDto;
+    const skip = (pageNumber - 1) * pageSize;
+
+    const commentsQuery = `
+    SELECT 
+  c.id,
+  c.content,
+  c.user_id,
+  c.created_at,
+  u.login,
+  COUNT(*) FILTER (WHERE l.status = 'Like')    AS likeCount,
+  COUNT(*) FILTER (WHERE l.status = 'Dislike') AS dislikeCount
+FROM comments c
+JOIN users u ON c.user_id = u.id
+LEFT JOIN likes l 
+  ON l.parent_id = c.id 
+ AND l.parent_type = 'comment'
+WHERE c.post_id = $1
+GROUP BY c.id, c.content, c.user_id, c.created_at, u.login
+ORDER BY c.${sortBy} ${sortDirection}
+OFFSET $2
+LIMIT $3;
+  `;
+
+    const comments: (CommentDbDto & {
+      login: string;
+      likeCount: number;
+      dislikeCount: number;
+    })[] = await this.dataSource.query(commentsQuery, [
+      Number(id),
+      skip,
+      pageSize,
+    ]);
+
+    const items = comments.map((comment) => CommentViewDto.mapToView(comment));
+
+    return PaginatedViewDto.mapToView({
+      items,
+      totalCount: comments.length,
+      page: queryDto.pageNumber,
+      size: queryDto.pageSize,
+    });
+  }
 }

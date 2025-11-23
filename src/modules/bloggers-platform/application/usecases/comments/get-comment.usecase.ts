@@ -34,10 +34,11 @@ export class GetCommentUseCase
       );
 
       if (like) {
-        return CommentViewDto.mapToView(comment, like.status);
+        comment.likesInfo.myStatus = like.status;
+        return comment;
       }
     }
 
-    return CommentViewDto.mapToView(comment);
+    return comment;
   }
 }

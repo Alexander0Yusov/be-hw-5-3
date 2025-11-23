@@ -19,9 +19,6 @@ export class CreateCommentUseCase
   implements ICommandHandler<CreateCommentCommand, string>
 {
   constructor(
-    // @InjectModel(Comment.name)
-    private CommentModel: any,
-    // CommentModelType,
     private commentsRepository: CommentsRepository,
     private postsQueryRepository: PostsQueryRepository,
     private usersQueryRepository: UsersQueryRepository,
@@ -35,18 +32,12 @@ export class CreateCommentUseCase
     await this.postsQueryRepository.findByIdOrNotFoundFail(postId);
     // const user = await this.usersQueryRepository.findByIdOrNotFoundFail(userId);
 
-    const newComment: CreateCommentDomainDto = {
+    const commentId = await this.commentsRepository.create({
       content: dto.content,
-      postId: '', // new Types.ObjectId(postId),
-      userId: '', //new Types.ObjectId(userId),
-      userLogin: '', // user.login,
-      likesCount: 0,
-      dislikesCount: 0,
-    };
+      user_id: Number(userId),
+      post_id: Number(postId),
+    });
 
-    const comment = this.CommentModel.createInstance(newComment);
-    await this.commentsRepository.save(comment);
-
-    return comment._id.toString();
+    return commentId.toString();
   }
 }

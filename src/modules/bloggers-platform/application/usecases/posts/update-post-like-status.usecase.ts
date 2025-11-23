@@ -20,7 +20,6 @@ export class UpdatepostLikeStatusUseCase
   constructor(
     private postsRepository: PostsRepository,
     private likesRepository: LikesRepository,
-    private usersQueryRepository: UsersQueryRepository,
   ) {}
 
   async execute({
@@ -28,34 +27,14 @@ export class UpdatepostLikeStatusUseCase
     parentId,
     userId,
   }: UpdatePostLikeStatusCommand): Promise<void> {
-    const post = await this.postsRepository.findOrNotFoundFail(parentId);
-    // const user = await this.usersQueryRepository.findByIdOrNotFoundFail(userId);
+    await this.postsRepository.findOrNotFoundFail(parentId);
 
     // создание/обновление записи в коллекции лайков
     await this.likesRepository.createOrUpdate(
       parentId,
       userId,
+      'post',
       dto.likeStatus,
-      // user.login,
     );
-
-    // пересчет счетчиков. можно уточнять название коллекции в которой айдишка искомая
-    const { likes, dislikes } =
-      await this.likesRepository.countReactions(parentId);
-
-    // поиск трех последних лайков для поста
-    const latestLikesList = await this.likesRepository.getLatestLikes(parentId);
-
-    // явно мапим лайки
-    const latestLikesListView = likeDocsToViewMap(latestLikesList);
-
-    // правка и сохранение отредактированного комметария в репозитории
-    post.updateLikesCountersAndLastLikesList(
-      likes,
-      dislikes,
-      latestLikesListView,
-    );
-
-    // await this.postsRepository.save(post);
   }
 }

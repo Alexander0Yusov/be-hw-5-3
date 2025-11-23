@@ -1,21 +1,42 @@
 import { Injectable } from '@nestjs/common';
 import { Like } from '../../domain/like/like.entity';
+import { DataSource } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { LikeDbDto } from '../../dto/like/like-db.dto';
 
 @Injectable()
 export class LikesQueryRepository {
-  constructor() //@InjectModel(Like.name)
-  // private LikeModel: any,
-  //LikeModelType
-  {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
-  // async getLikesByParentsIds(
-  //   parentsIds: any, // Types.ObjectId[],
-  //   userId: string,
-  // ): Promise<Like[]> {
-  //   return await this.LikeModel.find({
-  //     parentId: { $in: parentsIds },
-  //     authorId: '', // new Types.ObjectId(userId),
-  //     status: { $in: ['Like', 'Dislike'] },
-  //   }).lean();
-  // }
+  async getMyLikesForPostsIds(
+    postsIds: number[],
+    myId: string,
+  ): Promise<LikeDbDto[]> {
+    const res = await this.dataSource.query(
+      `
+      SELECT *
+      FROM likes l
+      WHERE l.parent_type = 'post' AND l.parent_id = ANY($1) AND l.user_id = $2
+      `,
+      [postsIds, Number(myId)],
+    );
+
+    return res;
+  }
+
+  async getMyLikesForCommentsIds(
+    commentsIds: number[],
+    myId: string,
+  ): Promise<LikeDbDto[]> {
+    const res = await this.dataSource.query(
+      `
+      SELECT *
+      FROM likes l
+      WHERE l.parent_type = 'comment' AND l.parent_id = ANY($1) AND l.user_id = $2
+      `,
+      [commentsIds, Number(myId)],
+    );
+
+    return res;
+  }
 }

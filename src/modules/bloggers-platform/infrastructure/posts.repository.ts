@@ -21,13 +21,20 @@ export class PostsRepository {
   }
 
   async findOrNotFoundFail(id: string): Promise<any> {
-    // PostDocument
-    // const post = await this.PostModel.findById(id);
-    // if (!post) {
-    //   //TODO: replace with domain exception
-    //   throw new NotFoundException('post not found');
-    // }
-    // return post;
+    const [post] = await this.dataSource.query(
+      `
+    SELECT p.id, p.content, p.user_id, p.created_at, p.updated_at
+    FROM posts p
+    WHERE p.id = $1
+    `,
+      [Number(id)],
+    );
+
+    if (!post) {
+      throw new NotFoundException(`Post with id ${id} not found`);
+    }
+
+    return post;
   }
 
   async deleteOrNotFoundFail(id: string): Promise<void> {
