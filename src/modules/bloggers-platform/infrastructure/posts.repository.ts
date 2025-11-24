@@ -11,10 +11,10 @@ export class PostsRepository {
 
   async create(dto: Partial<CreatePostDomainDto>) {
     const result = await this.dataSource.query(
-      `INSERT INTO posts (title, short_description, content, blog_id, blog_name) 
-      VALUES ($1, $2, $3, $4, $5) 
+      `INSERT INTO posts (title, short_description, content, blog_id) 
+      VALUES ($1, $2, $3, $4) 
       RETURNING id`,
-      [dto.title, dto.shortDescription, dto.content, dto.blogId, dto.blogName],
+      [dto.title, dto.shortDescription, dto.content, Number(dto.blogId)],
     );
 
     return result[0].id;
@@ -23,7 +23,7 @@ export class PostsRepository {
   async findOrNotFoundFail(id: string): Promise<any> {
     const [post] = await this.dataSource.query(
       `
-    SELECT p.id, p.content, p.user_id, p.created_at, p.updated_at
+    SELECT p.id, p.content, p.created_at
     FROM posts p
     WHERE p.id = $1
     `,

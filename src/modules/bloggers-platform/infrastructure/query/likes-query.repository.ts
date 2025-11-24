@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Like } from '../../domain/like/like.entity';
 import { DataSource } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { LikeDbDto } from '../../dto/like/like-db.dto';

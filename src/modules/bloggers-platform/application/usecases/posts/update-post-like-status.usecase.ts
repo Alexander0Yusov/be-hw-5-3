@@ -2,8 +2,6 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { LikeInputDto } from 'src/modules/bloggers-platform/dto/like/like-input.dto';
 import { LikesRepository } from 'src/modules/bloggers-platform/infrastructure/likes.repository';
 import { PostsRepository } from 'src/modules/bloggers-platform/infrastructure/posts.repository';
-import { UsersQueryRepository } from 'src/modules/user-accounts/infrastructure/query/users-query.repository';
-import { likeDocsToViewMap } from '../../mapers/likeDocs-to-view.map';
 
 export class UpdatePostLikeStatusCommand {
   constructor(

@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -11,13 +10,11 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { PostsService } from '../application/posts.service';
 import { PostsQueryRepository } from '../infrastructure/query/posts-query.repository';
 import { PostInputDto } from '../dto/post/post-iput.dto';
 import { PostViewDto } from '../dto/post/post-view.dto';
 import { GetPostsQueryParams } from '../dto/post/get-posts-query-params.input-dto';
 import { PaginatedViewDto } from 'src/core/dto/base.paginated.view-dto';
-import { PostUpdateDto } from '../dto/post/post-update.dto';
 import { CommentViewDto } from '../dto/comment/comment-view.dto';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CommentInputDto } from '../dto/comment/comment-input.dto';
@@ -29,7 +26,6 @@ import { CommentsQueryRepository } from '../infrastructure/query/comments-query.
 import { LikeInputDto } from '../dto/like/like-input.dto';
 import { UpdatePostLikeStatusCommand } from '../application/usecases/posts/update-post-like-status.usecase';
 import { JwtOptionalAuthGuard } from 'src/modules/user-accounts/guards/bearer/jwt-optional-auth.guard';
-
 import { BasicAuthGuard } from 'src/modules/user-accounts/guards/basic/basi-auth.guard';
 import { CreatePostCommand } from '../application/usecases/posts/create-post.usecase';
 import { ExtractUserIfExistsFromRequest } from 'src/modules/user-accounts/guards/decorators/param/extract-user-if-exists-from-request.decorator';
@@ -44,7 +40,6 @@ import { SkipThrottle } from '@nestjs/throttler';
 @SkipThrottle()
 export class PostsController {
   constructor(
-    // private postsService: PostsService,
     private postsQueryRepository: PostsQueryRepository,
     private commentsQueryRepository: CommentsQueryRepository,
     private likesQueryRepository: LikesQueryRepository,
@@ -91,24 +86,6 @@ export class PostsController {
     return posts;
   }
 
-  // @Put(':id')
-  // @UseGuards(BasicAuthGuard)
-  // @HttpCode(HttpStatus.NO_CONTENT)
-  // async updatePost(
-  //   @Param('id') id: string,
-  //   @Body() body: PostUpdateDto,
-  // ): Promise<void> {
-  //   await this.postsService.updatePost(id, body);
-  // }
-
-  // @Delete(':id')
-  // @UseGuards(BasicAuthGuard)
-  // @HttpCode(HttpStatus.NO_CONTENT)
-  // async deletePost(@Param('id') id: string): Promise<void> {
-  //   return this.postsService.deletePost(id);
-  // }
-
-  //
   @Post(':id/comments')
   @UseGuards(JwtAuthGuard)
   async createCommentForCurrentPost(
@@ -150,7 +127,7 @@ export class PostsController {
       query,
     );
 
-    if (user.id) {
+    if (user?.id) {
       const commentIds = comments.items.map((comment) => Number(comment.id));
       const likes = await this.likesQueryRepository.getMyLikesForCommentsIds(
         commentIds,

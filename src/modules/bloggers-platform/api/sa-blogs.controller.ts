@@ -11,27 +11,22 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { BlogsService } from '../application/blogs.service';
 import { BlogsQueryRepository } from '../infrastructure/query/blogs-query.repository';
 import { BasicAuthGuard } from 'src/modules/user-accounts/guards/basic/basi-auth.guard';
 import { BlogInputDto } from '../dto/blog/blog-input.dto';
 import { BlogViewDto } from '../dto/blog/blog-view.dto';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateBlogCommand } from '../application/usecases/blogs/create-blog.usecase';
-import { GetUsersQueryParams } from 'src/modules/user-accounts/dto/user/get-users-query-params.input-dto';
 import { GetBlogsQueryParams } from '../dto/blog/get-blogs-query-params.input-dto';
 import { PaginatedViewDto } from 'src/core/dto/base.paginated.view-dto';
 import { BlogUpdateDto } from '../dto/blog/blog-update.dto';
 import { UpdateBlogCommand } from '../application/usecases/blogs/update-blog.usecase';
 import { DeleteBlogCommand } from '../application/usecases/blogs/delete-blog.usecase';
 import { CreatePostCommand } from '../application/usecases/posts/create-post.usecase';
-import { PostInputDto } from '../dto/post/post-iput.dto';
 import { PostUpdateOnBlogRouteDto } from '../dto/post/post-update-on-blog-route.dto';
 import { PostsQueryRepository } from '../infrastructure/query/posts-query.repository';
 import { GetPostsQueryParams } from '../dto/post/get-posts-query-params.input-dto';
-import { GetMeQuery } from 'src/modules/user-accounts/application/usecases/auth/get-me.query-handler';
 import { GetPostsByBlogIdQuery } from '../application/usecases/posts/get-posts-by-blog-id.query-handler';
-import { PostUpdateDto } from '../dto/post/post-update.dto';
 import { UpdatePostCommand } from '../application/usecases/posts/update-post.usecase';
 import { DeletePostCommand } from '../application/usecases/posts/delete-post.usecase';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -43,7 +38,6 @@ export class SaBlogsController {
   constructor(
     private commandBus: CommandBus,
     private queryBus: QueryBus,
-    // private blogsService: BlogsService,
     private blogsQueryRepository: BlogsQueryRepository,
     private postsQueryRepository: PostsQueryRepository,
   ) {}
@@ -87,7 +81,9 @@ export class SaBlogsController {
       new CreatePostCommand({ ...dto, blogId: id }),
     );
 
-    return this.postsQueryRepository.findByIdOrNotFoundFail(createdPostId);
+    return await this.postsQueryRepository.findByIdOrNotFoundFail(
+      createdPostId,
+    );
   }
 
   @Get(':id/posts')
@@ -96,12 +92,6 @@ export class SaBlogsController {
     @Param('id') id: string,
     @Query() query: GetPostsQueryParams,
   ): Promise<PaginatedViewDto<BlogViewDto[]>> {
-    // return await this.postsQueryRepository.getAll(query, id);
-    console.log(
-      88888,
-      '-----------------------------------------------------------------------',
-    );
-
     return await this.queryBus.execute(new GetPostsByBlogIdQuery(query, id));
   }
 

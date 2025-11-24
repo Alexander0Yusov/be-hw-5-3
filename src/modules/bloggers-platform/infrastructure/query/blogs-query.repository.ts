@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Blog } from '../../domain/blog/blog.entity';
 import { BlogViewDto } from '../../dto/blog/blog-view.dto';
 import { GetBlogsQueryParams } from '../../dto/blog/get-blogs-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';

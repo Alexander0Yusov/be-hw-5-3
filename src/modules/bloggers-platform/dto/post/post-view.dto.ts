@@ -1,6 +1,4 @@
-import { Like, LikeStatus } from '../../domain/like/like.entity';
-import { Post } from '../../domain/post/post.entity';
-import { PostDbDto } from './post-db.dto';
+import { LikeStatus } from '../../domain/like/like.entity';
 
 export class PostViewDto {
   id: string;
@@ -22,7 +20,7 @@ export class PostViewDto {
     }[];
   };
 
-  static mapToView(data: PostDbDto): PostViewDto {
+  static mapToView(data: any): PostViewDto {
     return {
       id: String(data.id),
       title: data.title,
@@ -35,7 +33,7 @@ export class PostViewDto {
         likesCount: data.likes_count,
         dislikesCount: data.dislikes_count,
         myStatus: LikeStatus.None,
-        newestLikes: [],
+        newestLikes: data.newest_likes,
       },
     };
   }

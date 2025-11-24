@@ -17,9 +17,11 @@ export class TestingController {
   async deleteAll() {
     const tables = [
       'blogs',
+      'comments',
+      'likes',
       'posts',
-      'users',
       'sessions',
+      'users',
       'email_confirmations',
       'password_recoveries',
     ];

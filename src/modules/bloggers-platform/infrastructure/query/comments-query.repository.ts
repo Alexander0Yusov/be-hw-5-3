@@ -1,11 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Post } from '../../domain/post/post.entity';
-import { PostViewDto } from '../../dto/post/post-view.dto';
-import { Like } from '../../domain/like/like.entity';
-import { GetPostsQueryParams } from '../../dto/post/get-posts-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
-import { Blog } from '../../domain/blog/blog.entity';
-import { Comment } from '../../domain/comment/comment.entity';
 import { CommentViewDto } from '../../dto/comment/comment-view.dto';
 import { GetCommentsQueryParams } from '../../dto/comment/get-comments-query-params.input-dto';
 import { InjectDataSource } from '@nestjs/typeorm';
@@ -55,8 +49,6 @@ export class CommentsQueryRepository {
       [Number(commentId), 'comment'],
     );
 
-    console.log(44444, comment, '==', counts);
-
     return {
       id: String(id),
       content: content,
@@ -84,8 +76,8 @@ export class CommentsQueryRepository {
   c.user_id,
   c.created_at,
   u.login,
-  COUNT(*) FILTER (WHERE l.status = 'Like')    AS likeCount,
-  COUNT(*) FILTER (WHERE l.status = 'Dislike') AS dislikeCount
+  COUNT(*) FILTER (WHERE l.status = 'Like')::int AS "likesCount",
+  COUNT(*) FILTER (WHERE l.status = 'Dislike')::int AS "dislikesCount"
 FROM comments c
 JOIN users u ON c.user_id = u.id
 LEFT JOIN likes l 
@@ -93,15 +85,15 @@ LEFT JOIN likes l
  AND l.parent_type = 'comment'
 WHERE c.post_id = $1
 GROUP BY c.id, c.content, c.user_id, c.created_at, u.login
-ORDER BY c.${sortBy} ${sortDirection}
+ORDER BY c.created_at ${sortDirection.toUpperCase()}
 OFFSET $2
 LIMIT $3;
   `;
 
     const comments: (CommentDbDto & {
       login: string;
-      likeCount: number;
-      dislikeCount: number;
+      likesCount: number;
+      dislikesCount: number;
     })[] = await this.dataSource.query(commentsQuery, [
       Number(id),
       skip,
@@ -110,9 +102,18 @@ LIMIT $3;
 
     const items = comments.map((comment) => CommentViewDto.mapToView(comment));
 
+    const totalCountResult = await this.dataSource.query(
+      `
+    SELECT COUNT(*)::int AS "totalCount"
+    FROM comments c
+    WHERE c.post_id = $1;
+    `,
+      [Number(id)],
+    );
+
     return PaginatedViewDto.mapToView({
       items,
-      totalCount: comments.length,
+      totalCount: totalCountResult[0].totalCount,
       page: queryDto.pageNumber,
       size: queryDto.pageSize,
     });

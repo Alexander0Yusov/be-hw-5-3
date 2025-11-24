@@ -3,9 +3,6 @@ import { GetPostsQueryParams } from 'src/modules/bloggers-platform/dto/post/get-
 import { PostViewDto } from 'src/modules/bloggers-platform/dto/post/post-view.dto';
 import { BlogsQueryRepository } from 'src/modules/bloggers-platform/infrastructure/query/blogs-query.repository';
 import { PostsQueryRepository } from 'src/modules/bloggers-platform/infrastructure/query/posts-query.repository';
-import { MeViewDto } from 'src/modules/user-accounts/dto/user/user-view.dto';
-import { UserContextDto } from 'src/modules/user-accounts/guards/dto/user-context.dto';
-import { UsersQueryRepository } from 'src/modules/user-accounts/infrastructure/query/users-query.repository';
 
 export class GetPostsByBlogIdQuery {
   constructor(

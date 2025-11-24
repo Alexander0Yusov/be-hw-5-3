@@ -17,14 +17,9 @@ export class CreatePostUseCase
   ) {}
 
   async execute({ dto }: CreatePostCommand): Promise<string> {
-    const blog = await this.blogsQueryRepository.findByIdOrNotFoundFail(
-      dto.blogId,
-    );
+    await this.blogsQueryRepository.findByIdOrNotFoundFail(dto.blogId);
 
-    const postId = await this.postsRepository.create({
-      ...dto,
-      blogName: blog.name,
-    });
+    const postId = await this.postsRepository.create(dto);
 
     return postId.toString();
   }
