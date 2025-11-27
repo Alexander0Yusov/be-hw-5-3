@@ -21,8 +21,10 @@ import { DeleteCommentCommand } from '../application/usecases/comments/delete-co
 import { JwtOptionalAuthGuard } from 'src/modules/user-accounts/guards/bearer/jwt-optional-auth.guard';
 import { ExtractUserIfExistsFromRequest } from 'src/modules/user-accounts/guards/decorators/param/extract-user-if-exists-from-request.decorator';
 import { GetCommentCommand } from '../application/usecases/comments/get-comment.usecase';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @Controller('comments')
+@SkipThrottle()
 export class CommentsController {
   constructor(private commandBus: CommandBus) {}
 

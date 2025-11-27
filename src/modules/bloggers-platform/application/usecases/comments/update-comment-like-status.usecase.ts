@@ -30,18 +30,18 @@ export class UpdateCommentLikeStatusUseCase
     // надо проверить что юзер меняет свой лайк и что коммент существует
     const comment = await this.commentsRepository.findById(parentId);
 
-    if (comment.user_id === Number(userId)) {
-      await this.likesRepository.createOrUpdate(
-        parentId,
-        userId,
-        'comment',
-        dto.likeStatus,
-      );
-    } else {
-      throw new DomainException({
-        code: DomainExceptionCode.Forbidden,
-        message: 'Comment was created by another user',
-      });
-    }
+    // if (comment.user_id === Number(userId)) {
+    await this.likesRepository.createOrUpdate(
+      parentId,
+      userId,
+      'comment',
+      dto.likeStatus,
+    );
+    // } else {
+    //   throw new DomainException({
+    //     code: DomainExceptionCode.Forbidden,
+    //     message: 'Comment was created by another user',
+    //   });
+    // }
   }
 }

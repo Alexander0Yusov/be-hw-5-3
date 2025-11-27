@@ -179,7 +179,7 @@ GROUP BY sub.post_id;
     const fullPosts = posts.map((post) => {
       const additionalCountsForPost = counts.find(
         (item) => item.post_id === post.id,
-      );
+      ) ?? { likes_count: 0, dislikes_count: 0 };
 
       const additionalNewestLikesForPost = newestLikes.find(
         (item) => item.post_id === post.id,
